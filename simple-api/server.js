@@ -5,33 +5,48 @@ const PORT = 3000;
 
 app.use(express.json()); // allow JSON bodies
 
-// Simple GET endpoint
-app.get("/", (req, res) => {
-  res.send("Hello, Unity!");
+// Emoji quiz data
+const emojiQuizzes = [
+  { emojis: "🍕🍔🍟", answer: "fast food" },
+  { emojis: "🚗💨", answer: "fast car" },
+  { emojis: "🐶🐱🐭", answer: "animals" },
+  { emojis: "🌞🌧️🌈", answer: "weather" },
+  { emojis: "🎮🕹️👾", answer: "gaming" },
+  { emojis: "🏀⚽🏈", answer: "sports" },
+  { emojis: "🎵🎤🎸", answer: "music" },
+  { emojis: "🍎🍌🍇", answer: "fruits" },
+  { emojis: "✈️🌍🧳", answer: "travel" },
+  { emojis: "📚✏️🏫", answer: "school" }
+];
+
+// ✅ GET all quizzes
+app.get("/quizzes", (req, res) => {
+  res.json(emojiQuizzes);
 });
 
-// GET Player Info (example)
-app.get("/player/:id", (req, res) => {
-  const playerId = req.params.id;
-  res.json({
-    playerId: playerId,
-    username: "Player_" + playerId,
-    level: 3,
-    xp: 1500
-  });
+// ✅ GET random quiz
+app.get("/quizzes/random", (req, res) => {
+  const random = emojiQuizzes[Math.floor(Math.random() * emojiQuizzes.length)];
+  res.json(random);
 });
 
-// POST Save Progress
-app.post("/progress", (req, res) => {
-  const { playerId, level, xp } = req.body;
-  console.log("Received progress:", req.body);
-  res.json({
-    message: "Progress saved successfully!",
-    data: { playerId, level, xp }
-  });
+// ✅ Check answer
+app.get("/quizzes/check", (req, res) => {
+  const { emojis, guess } = req.query;
+  if (!emojis || !guess) {
+    return res.status(400).json({ error: "Provide both emojis and guess" });
+  }
+
+  const quiz = emojiQuizzes.find(q => q.emojis === emojis);
+  if (!quiz) {
+    return res.status(404).json({ error: "Quiz not found" });
+  }
+
+  const correct = quiz.answer.toLowerCase() === guess.toLowerCase();
+  res.json({ correct, answer: quiz.answer });
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Emoji Quiz API running at http://localhost:${port}`);
 });
